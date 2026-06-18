@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>坨坨</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="expanded">
+  <!-- COLLAPSED: floating electric pet -->
+  <div id="collapsed" title="Click to expand">
+    <div class="pet-host pet-host-lg" aria-hidden="true"></div>
+    <span id="cNum" class="c-num">—</span>
+  </div>
+
+  <!-- EXPANDED: dense, period-switchable panel -->
+  <div id="app">
+    <header id="bar">
+      <div class="brand"><span class="logo">⚡</span><span>坨坨</span></div>
+      <div class="bar-right">
+        <span id="liveDot" class="dot" title="status"></span>
+        <button id="collapseBtn" class="x" title="Collapse to pet">–</button>
+        <button id="closeBtn" class="x" title="Quit">✕</button>
+      </div>
+    </header>
+
+    <div class="seg">
+      <button class="seg-btn" data-period="today">TODAY</button>
+      <button class="seg-btn" data-period="d7">7 DAYS</button>
+      <button class="seg-btn" data-period="d30">30 DAYS</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <section class="hero">
+      <div class="pet-host pet-host-sm" aria-hidden="true"></div>
+      <div id="total" class="bignum" title="">—</div>
+      <div class="row sub"><span id="sub2" class="burn">—</span><span id="cost" class="cost">≈ $—</span></div>
+      <canvas id="chart" class="chart"></canvas>
+      <div id="chartCap" class="chartCap">—</div>
+    </section>
+
+    <section class="io">
+      <div id="inTile" class="tile clickable" title="Click to switch: fresh ↔ fresh + cache">
+        <div class="t-top"><span class="tlabel">INPUT <span class="tog">⇄</span></span><span id="inShare" class="tshare"></span></div>
+        <div id="inNum" class="tnum in" title="">—</div>
+        <div id="inCap" class="tcap">fresh + cache</div>
+      </div>
+      <div class="tile">
+        <div class="t-top"><span class="tlabel">OUTPUT</span><span id="outShare" class="tshare"></span></div>
+        <div id="outNum" class="tnum out" title="">—</div>
+        <div class="tcap">generated</div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Original electric-mouse mascot (NOT Pikachu — original art) -->
+  <template id="petTpl">
+    <svg class="pet-svg" viewBox="0 0 100 116" xmlns="http://www.w3.org/2000/svg">
+      <ellipse class="pet-shadow" cx="50" cy="111" rx="25" ry="4.5"/>
+      <circle class="zflash" cx="50" cy="60" r="8"/>
+      <g class="pet">
+        <path class="tail" d="M68 58 L88 34 L78 36 L94 12 L72 42 L82 40 Z"/>
+        <path class="ear ear-l" d="M31 36 L19 7 L42 30 Z"/>
+        <path class="ear ear-r" d="M61 31 L75 5 L79 32 Z"/>
+        <path class="ear-tip" d="M19 7 L27 19 L34 12 Z"/>
+        <path class="ear-tip" d="M75 5 L72 19 L80 17 Z"/>
+        <ellipse class="body" cx="50" cy="65" rx="33" ry="31"/>
+        <ellipse class="belly" cx="50" cy="73" rx="21" ry="21"/>
+        <path class="emblem" d="M53 60 L44 75 L51 75 L47 88 L59 70 L52 70 Z"/>
+        <ellipse class="foot" cx="39" cy="96" rx="9" ry="6"/>
+        <ellipse class="foot" cx="61" cy="96" rx="9" ry="6"/>
+        <ellipse class="arm" cx="21" cy="69" rx="6.5" ry="9.5"/>
+        <ellipse class="arm" cx="79" cy="69" rx="6.5" ry="9.5"/>
+        <circle class="cheek" cx="31" cy="63" r="5.5"/>
+        <circle class="cheek" cx="69" cy="63" r="5.5"/>
+        <path class="brow brow-l" d="M35 45 L45 48"/>
+        <path class="brow brow-r" d="M65 45 L55 48"/>
+        <ellipse class="eye" cx="41" cy="53" rx="4.3" ry="5.6"/>
+        <ellipse class="eye" cx="59" cy="53" rx="4.3" ry="5.6"/>
+        <circle class="eye-hi" cx="42.4" cy="51" r="1.5"/>
+        <circle class="eye-hi" cx="60.4" cy="51" r="1.5"/>
+        <path class="mouth" d="M46 59 Q50 63 54 59"/>
+        <ellipse class="battle-mouth" cx="50" cy="60" rx="4.5" ry="3.2"/>
+        <path class="spark spark-l" d="M21 60 l3 -5 l-2.4 0 l3 -5"/>
+        <path class="spark spark-r" d="M79 60 l-3 -5 l2.4 0 l-3 -5"/>
+      </g>
+      <g class="bolts" aria-hidden="true">
+        <path class="zbolt" d="M50 30 l-5 -10 l7 1 l-6 -13"/>
+        <path class="zbolt" d="M69 39 l9 -7 l-4 -2 l12 -9"/>
+        <path class="zbolt" d="M80 58 l13 -3 l-5 -4 l13 -5"/>
+        <path class="zbolt" d="M31 39 l-9 -7 l4 -2 l-12 -9"/>
+        <path class="zbolt" d="M20 58 l-13 -3 l5 -4 l-13 -5"/>
+        <path class="zbolt" d="M64 84 l8 9 l-5 1 l10 10"/>
+        <path class="zbolt" d="M36 84 l-8 9 l5 1 l-10 10"/>
+      </g>
+    </svg>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>

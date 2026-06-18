@@ -1,0 +1,9 @@
+node_modules/
+dist/
+out/
+state.json
+*.log
+.DS_Store
+
+# internal dev notes — not for the public repo
+HANDOFF.md

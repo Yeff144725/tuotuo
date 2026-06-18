@@ -1,0 +1,180 @@
+/* Thunder — dense, period-switchable token trackpad + electric pet.
+   --accent is recolored live by app.js (cool cyan → hot red) by burn rate. */
+:root {
+  --accent: 255, 176, 32;
+  --ink: #eef2f7;
+  --dim: #8b95a6;
+  --faint: #5b6473;
+  --glass: rgba(13, 15, 20, 0.90);
+  --hair: rgba(255, 255, 255, 0.08);
+  --hair-2: rgba(255, 255, 255, 0.045);
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, "Cascadia Mono", monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --in: 86, 214, 255;
+  --out: 255, 110, 90;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: transparent; overflow: hidden; }
+body { font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; user-select: none; cursor: default; }
+
+body.expanded #collapsed { display: none; }
+body.expanded #app { display: flex; }
+body.collapsed #app { display: none; }
+body.collapsed #collapsed { display: flex; }
+
+/* ── collapsed: floating pet (transparent window) ── */
+#collapsed {
+  position: relative; width: 100%; height: 100vh;
+  flex-direction: column; align-items: center; justify-content: flex-end;
+  gap: 3px; padding-bottom: 4px;
+  cursor: grab; background: transparent;
+}
+#collapsed:active { cursor: grabbing; }
+.pet-host-lg { width: 86px; height: 96px; }
+.c-num {
+  font-family: var(--mono); font-size: 11px; font-weight: 600; letter-spacing: -0.3px; color: #fff;
+  font-variant-numeric: tabular-nums;
+  background: rgba(10, 12, 16, 0.72); border: 1px solid rgba(var(--accent), 0.45);
+  border-radius: 8px; padding: 1px 8px;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+}
+
+/* ── expanded panel ── */
+#app {
+  position: relative; width: 100%; height: auto;
+  flex-direction: column; padding: 9px 11px 10px; gap: 8px;
+  background: var(--glass);
+  backdrop-filter: blur(34px) saturate(140%); -webkit-backdrop-filter: blur(34px) saturate(140%);
+  border: 1px solid var(--hair); border-radius: 16px;
+  box-shadow: 0 18px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+#app::before {
+  content: ""; position: absolute; inset: -40% 0 auto 0; height: 200px; pointer-events: none;
+  background: radial-gradient(60% 80% at 80% 0%, rgba(var(--accent), 0.14), transparent 70%);
+  transition: background .8s ease;
+}
+
+/* ── header ── */
+#bar { -webkit-app-region: drag; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 2.5px; color: var(--dim); }
+.logo { font-size: 12px; filter: drop-shadow(0 0 6px rgba(var(--accent),0.8)); }
+.bar-right { -webkit-app-region: no-drag; display: flex; align-items: center; gap: 7px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: rgb(var(--accent)); box-shadow: 0 0 0 0 rgba(var(--accent),0.6); }
+.dot.beat { animation: beat 1.2s ease-out; }
+@keyframes beat { 0% { box-shadow: 0 0 0 0 rgba(var(--accent),0.6); } 100% { box-shadow: 0 0 0 8px rgba(var(--accent),0); } }
+.x { -webkit-app-region: no-drag; appearance: none; background: transparent; border: none; color: var(--faint); font-size: 13px; cursor: pointer; padding: 1px 4px; line-height: 1; border-radius: 6px; }
+.x:hover { color: var(--ink); background: rgba(255,255,255,0.07); }
+
+/* ── period selector ── */
+.seg { -webkit-app-region: no-drag; display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px; background: var(--hair-2); border: 1px solid var(--hair); border-radius: 9px; padding: 3px; }
+.seg-btn { appearance: none; background: transparent; border: none; color: var(--dim); font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; padding: 5px 0; border-radius: 6px; cursor: pointer; transition: background .15s, color .15s; }
+.seg-btn:hover { color: var(--ink); }
+.seg-btn.active { background: rgba(var(--accent), 0.16); color: rgb(var(--accent)); }
+
+.status { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; color: var(--faint); }
+
+/* ── hero ── */
+.hero { position: relative; display: flex; flex-direction: column; gap: 4px; }
+.row { display: flex; align-items: baseline; justify-content: space-between; }
+.bignum {
+  font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums;
+  font-size: 34px; line-height: 1.0; letter-spacing: -1px; white-space: nowrap; padding-right: 58px;
+  color: #fff; text-shadow: 0 0 22px rgba(var(--accent), 0.35); transition: text-shadow .6s ease;
+}
+.hero.flash .bignum { animation: flash .5s ease-out; }
+@keyframes flash { 0% { text-shadow: 0 0 34px rgba(var(--accent),0.9); } 100% { text-shadow: 0 0 22px rgba(var(--accent),0.35); } }
+.sub { padding-right: 58px; }
+.burn { font-family: var(--mono); font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.burn .caret { color: rgb(var(--accent)); font-size: 8px; }
+.cost { font-family: var(--mono); font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.pet-host-sm { position: absolute; top: 2px; right: 0; width: 56px; height: 62px; pointer-events: auto; z-index: 3; }
+
+.chart { width: 100%; height: 74px; display: block; margin-top: 3px; }
+.chartCap { font-family: var(--mono); font-size: 8px; letter-spacing: .3px; color: var(--faint); text-align: center; margin-top: -2px; }
+
+/* ── input / output ── */
+.io { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+.tile { background: var(--hair-2); border: 1px solid var(--hair); border-radius: 11px; padding: 8px 9px; }
+.tile.clickable { cursor: pointer; transition: background .15s, border-color .15s; }
+.tile.clickable:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.14); }
+.tog { color: rgb(var(--accent)); font-size: 8px; opacity: .75; }
+.t-top { display: flex; align-items: center; justify-content: space-between; }
+.tlabel { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: var(--dim); }
+.tshare { font-family: var(--mono); font-size: 8.5px; color: var(--faint); }
+.tnum { font-family: var(--mono); font-weight: 600; font-variant-numeric: tabular-nums; font-size: 21px; letter-spacing: -.5px; margin-top: 2px; }
+.tnum.in { color: rgb(var(--in)); text-shadow: 0 0 16px rgba(var(--in), .28); }
+.tnum.out { color: rgb(var(--out)); text-shadow: 0 0 16px rgba(var(--out), .28); }
+.tcap { font-family: var(--mono); font-size: 8px; color: var(--faint); margin-top: 2px; letter-spacing: .2px; }
+
+/* ── pet attack (hover blue thunderbolt) ── */
+.zflash { fill: #fff4c0; opacity: 0; transform-box: fill-box; transform-origin: center; }
+.brow { stroke: #2b2b2b; stroke-width: 2; stroke-linecap: round; fill: none; opacity: 0; }
+.battle-mouth { fill: #6e3326; opacity: 0; }
+.bolts { opacity: 0; transform-box: fill-box; transform-origin: 50% 58%; }
+.zbolt { fill: none; stroke: #ffd23f; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 3px #ffb800) drop-shadow(0 0 7px #ffa000); }
+.pet-svg.attack .pet { animation: attackPose 1.25s ease-out; }
+.pet-svg.attack .bolts { animation: boltsFlash 1.15s ease-out; }
+.pet-svg.attack .zflash { animation: flashBurst .8s ease-out; }
+.pet-svg.attack .eye { animation: attackEye 1.25s ease-out; }
+.pet-svg.attack .brow { opacity: 1; }
+.pet-svg.attack .battle-mouth { opacity: 1; }
+.pet-svg.attack .mouth { opacity: 0; }
+@keyframes attackPose { 0% { transform: translateY(0) scale(1) rotate(0); } 18% { transform: translateY(3px) scale(.95) rotate(-3deg); } 36% { transform: translateY(-4px) scale(1.13) rotate(2deg); } 60% { transform: translateY(0) scale(1.03); } 100% { transform: translateY(0) scale(1); } }
+@keyframes boltsFlash { 0%,12% { opacity: 0; transform: scale(.4); } 24% { opacity: 1; transform: scale(1.18); } 40% { opacity: .45; transform: scale(1); } 56% { opacity: 1; transform: scale(1.12); } 80% { opacity: 0; transform: scale(1.1); } 100% { opacity: 0; } }
+@keyframes flashBurst { 0%,14% { opacity: 0; transform: scale(.2); } 30% { opacity: .9; transform: scale(2.4); } 100% { opacity: 0; transform: scale(3.8); } }
+@keyframes attackEye { 0% { transform: scaleY(1); } 20% { transform: scaleY(.45); } 42% { transform: scaleY(1.15); } 100% { transform: scaleY(1); } }
+/* hover: jump + a 360° spin around the VERTICAL axis (turn-around, head stays up — not a flip) */
+.pet-svg.hop .pet { transform-origin: 50% 100%; animation: hop .72s cubic-bezier(.3, 1.35, .5, 1); }
+@keyframes hop {
+  0%   { transform: perspective(340px) translateY(0)    rotateY(0deg)   scale(1); }
+  28%  { transform: perspective(340px) translateY(-15px) rotateY(150deg) scale(1.04); }
+  55%  { transform: perspective(340px) translateY(-16px) rotateY(250deg) scale(1.04); }
+  80%  { transform: perspective(340px) translateY(-5px)  rotateY(330deg) scale(1.02); }
+  100% { transform: perspective(340px) translateY(0)    rotateY(360deg) scale(1); }
+}
+
+/* ① thunderbolt — stays YELLOW, charged brighter (yellow electricity) */
+.pet-svg.attack .body { fill: #ffdc2e; }
+.pet-svg.attack .belly { fill: #fff0b8; }
+.pet-svg.attack .ear { fill: #ffdc2e; }
+.pet-svg.attack .arm, .pet-svg.attack .foot { fill: #f2b600; }
+.pet-svg.attack .ear-tip { fill: #fff3b8; opacity: 1; }
+.pet-svg.attack .cheek { fill: #ffe680; filter: drop-shadow(0 0 8px #ffc233); }
+.pet-svg.attack .emblem { fill: #fff3b8; filter: drop-shadow(0 0 5px #ffc233); }
+.pet-svg.attack .tail { fill: #ffd23f; filter: drop-shadow(0 0 6px #ffc233); }
+.pet-svg.attack .spark { stroke: #ffe680; }
+
+/* ── electric pet (original mascot) ── */
+.pet-host { display: flex; align-items: flex-end; justify-content: center; }
+.pet-svg { width: 100%; height: 100%; overflow: visible; --spark-rate: 1.4s; display: block; }
+.pet { animation: bob 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.pet-shadow { fill: rgba(0,0,0,0.30); transform-box: fill-box; transform-origin: center; animation: shadowpulse 2.6s ease-in-out infinite; }
+.body { fill: #FFD23F; }
+.belly { fill: #FFE490; }
+.ear { fill: #FFD23F; transform-box: fill-box; transform-origin: 50% 100%; }
+.ear-l { animation: earL 4.2s ease-in-out infinite; }
+.ear-r { animation: earR 3.6s ease-in-out infinite; }
+.ear-tip { fill: rgb(var(--accent)); opacity: 0.82; }
+.arm, .foot { fill: #F2B600; }
+.emblem { fill: rgb(var(--accent)); filter: drop-shadow(0 0 3px rgba(var(--accent),0.7)); }
+.cheek { fill: rgb(var(--accent)); filter: drop-shadow(0 0 4px rgba(var(--accent),0.85)); animation: cheekpulse 2.6s ease-in-out infinite; }
+.eye { fill: #2b2b2b; transform-box: fill-box; transform-origin: center; animation: blink 5s infinite; }
+.eye-hi { fill: #fff; }
+.mouth { stroke: #7a5a1d; stroke-width: 1.6; fill: none; stroke-linecap: round; }
+.tail { fill: #FFC233; filter: drop-shadow(0 0 5px rgba(var(--accent),0.85)); transform-box: fill-box; transform-origin: 0% 100%; animation: tailflick 3s ease-in-out infinite; }
+.spark { stroke: rgb(var(--accent)); stroke-width: 1.7; fill: none; stroke-linecap: round; opacity: 0; filter: drop-shadow(0 0 3px rgba(var(--accent),0.9)); animation: sparkle var(--spark-rate) steps(1) infinite; }
+.spark-r { animation-delay: .4s; }
+.pet-svg.zap .pet { animation: bob 2.6s ease-in-out infinite, zap .5s ease-out; }
+.pet-svg.zap .spark { opacity: 1; }
+@keyframes bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes shadowpulse { 0%,100% { transform: scaleX(1); opacity: .3; } 50% { transform: scaleX(.86); opacity: .2; } }
+@keyframes blink { 0%,92%,100% { transform: scaleY(1); } 96% { transform: scaleY(.08); } }
+@keyframes earL { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-6deg); } }
+@keyframes earR { 0%,100% { transform: rotate(0); } 50% { transform: rotate(7deg); } }
+@keyframes cheekpulse { 0%,100% { opacity: .92; } 50% { opacity: .62; } }
+@keyframes tailflick { 0%,100% { transform: rotate(0); } 50% { transform: rotate(-11deg); } }
+@keyframes sparkle { 0%,100% { opacity: 0; transform: scale(.7); } 8% { opacity: 1; transform: scale(1.15); } 18% { opacity: 0; } }
+@keyframes zap { 0% { transform: translateY(0) scale(1); } 28% { transform: translateY(-5px) scale(1.09); } 100% { transform: translateY(0) scale(1); } }

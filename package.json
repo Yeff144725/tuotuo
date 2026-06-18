@@ -1,0 +1,18 @@
+{
+  "name": "token-trackpad",
+  "version": "1.0.0",
+  "description": "A live trackpad for your Claude Code token burn — always-on-top desktop widget showing today / 7d / 30d input+output usage, computed in real time from ~/.claude/projects.",
+  "main": "main.js",
+  "author": "Jeff Yang",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "https://github.com/Yeff144725/tuotuo.git" },
+  "homepage": "https://github.com/Yeff144725/tuotuo#readme",
+  "keywords": ["claude-code", "tokens", "usage", "electron", "desktop-widget", "macos", "pet", "menubar"],
+  "scripts": {
+    "start": "electron .",
+    "report": "node aggregator.js --test"
+  },
+  "devDependencies": {
+    "electron": "latest"
+  }
+}
