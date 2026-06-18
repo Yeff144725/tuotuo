@@ -7,7 +7,7 @@ recomputed every 2 seconds straight from your local `~/.claude/projects/*.jsonl`
 
 > macOS. The electric-mouse mascot is original, hand-drawn SVG — fork it freely.
 
-![坨坨 — live Claude Code token dashboard](assets/screenshot.png)
+![坨坨 living on your desktop — a tiny pet you tap to open live Claude Code token stats](assets/desktop.png)
 
 ## What it does
 - **Live token usage** — `TODAY` / `7 DAYS` / `30 DAYS` tabs drive a big total, an input/output split, and cost.
@@ -15,6 +15,8 @@ recomputed every 2 seconds straight from your local `~/.claude/projects/*.jsonl`
 - **List-price cost** — per-model `$` estimate at public API rates; no account or billing access needed.
 - **Period-aware chart** — a 60-minute live sparkline for today, daily bars for 7d/30d. The whole UI runs cool (cyan) → hot (red) with your burn rate.
 - **An electric pet** — it idles, hops + spins on hover, and fires a thunderbolt on click. Drag it anywhere (position persists), or collapse it to a floating mini-pet with a token badge.
+
+![The expanded dashboard, up close](assets/screenshot.png)
 
 ## Run it
 Requires **Node 18+** on **macOS**.
