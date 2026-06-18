@@ -14,7 +14,7 @@ recomputed every 2 seconds straight from your local `~/.claude/projects/*.jsonl`
 - **Honest counts** — dedupes by `message.id` (Claude Code copies each turn into many files; counting raw inflates totals ~3–4×).
 - **List-price cost** — per-model `$` estimate at public API rates; no account or billing access needed.
 - **Period-aware chart** — a 60-minute live sparkline for today, daily bars for 7d/30d. The whole UI runs cool (cyan) → hot (red) with your burn rate.
-- **An electric pet** — it idles, hops + spins on hover, and fires a thunderbolt on click. Drag it anywhere (position persists), or collapse it to a floating mini-pet with a token badge.
+- **A burn-reactive electric pet** — it glows **cool blue when you're idle and heats through amber to red as your token burn climbs**, so a glance tells you how hard you're driving Claude. It idles, hops + spins on hover, fires a thunderbolt on click, and tucks into a draggable floating mini-pet with a token badge.
 
 ![The expanded dashboard, up close](assets/screenshot.png)
 
