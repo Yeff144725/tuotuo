@@ -7,6 +7,8 @@ recomputed every 2 seconds straight from your local `~/.claude/projects/*.jsonl`
 
 > macOS. The electric-mouse mascot is original, hand-drawn SVG — fork it freely.
 
+![坨坨 — live Claude Code token dashboard](assets/screenshot.png)
+
 ## What it does
 - **Live token usage** — `TODAY` / `7 DAYS` / `30 DAYS` tabs drive a big total, an input/output split, and cost.
 - **Honest counts** — dedupes by `message.id` (Claude Code copies each turn into many files; counting raw inflates totals ~3–4×).
