@@ -41,7 +41,7 @@ function setNum(el, to, fmt) {
 }
 
 /* ---------- charts ---------- */
-function drawSpark(canvas, data, burn, phase) {
+function drawSpark(canvas, data, burn, phase, hoverI) {
   const dpr = window.devicePixelRatio || 1;
   const W = canvas.clientWidth, H = canvas.clientHeight;
   if (!W || !H) return;
@@ -71,9 +71,16 @@ function drawSpark(canvas, data, burn, phase) {
   ctx.fillStyle = rgb(c); ctx.beginPath(); ctx.arc(lx, ly, 3, 0, 7); ctx.fill();
   ctx.strokeStyle = rgb(c, 0.45); ctx.lineWidth = 1.4;
   ctx.beginPath(); ctx.arc(lx, ly, 5 + pulse, 0, 7); ctx.stroke();
+  if (hoverI >= 0 && hoverI < n) {
+    const hx = X(hoverI), hy = Y(data[hoverI]);
+    ctx.strokeStyle = rgb(c, 0.45); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(hx, 2); ctx.lineTo(hx, H); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(hx, hy, 3.2, 0, 7); ctx.fill();
+    ctx.strokeStyle = rgb(c); ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx, hy, 5.5, 0, 7); ctx.stroke();
+  }
 }
 
-function drawBars(canvas, data) {
+function drawBars(canvas, data, hoverI) {
   const dpr = window.devicePixelRatio || 1;
   const W = canvas.clientWidth, H = canvas.clientHeight;
   if (!W || !H) return;
@@ -88,6 +95,7 @@ function drawBars(canvas, data) {
     const t = data[i] / max;
     ctx.fillStyle = rgb(thermal(0.15 + t * 0.85), 0.55 + t * 0.45);
     ctx.fillRect(i * (bw + gap), H - h, bw, h);
+    if (i === hoverI) { ctx.strokeStyle = 'rgba(255,255,255,0.92)'; ctx.lineWidth = 1.5; ctx.strokeRect(i * (bw + gap) + 0.5, H - h + 0.5, Math.max(1, bw - 1), Math.max(1, h - 1)); }
   }
 }
 
@@ -96,6 +104,7 @@ let snap = null;
 let period = 'today';
 let inputMode = 'all';   // 'all' = fresh + cache, 'fresh' = fresh input only
 let prevTs = 0;
+let hoverIdx = -1;          // hovered chart point/bar (-1 = none)
 const pct = (v, t) => (t ? (v / t * 100 < 1 ? (v / t * 100).toFixed(1) : Math.round(v / t * 100)) + '%' : '');
 
 const windowFor = (s) => (period === 'd7' ? s.d7 : period === 'd30' ? s.d30 : s.today);
@@ -217,10 +226,53 @@ function frame(now) {
   }
   if (snap) {
     const c = $('chart');
-    if (period === 'today') drawSpark(c, snap.spark, snap.burnPerMin, now);
-    else drawBars(c, period === 'd7' ? snap.daily.slice(-7) : snap.daily);
+    const data = chartSeries();
+    if (period === 'today') drawSpark(c, data, snap.burnPerMin, now, hoverIdx);
+    else drawBars(c, data, hoverIdx);
   }
   requestAnimationFrame(frame);
+}
+
+/* ---------- chart hover: read the value at any minute / day ---------- */
+function chartSeries() {
+  if (!snap) return [];
+  const fresh = inputMode === 'fresh';            // follow the INPUT fresh ↔ (fresh + cache) toggle
+  if (period === 'today') return fresh ? (snap.sparkFresh || snap.spark) : snap.spark;
+  const d = fresh ? (snap.dailyFresh || snap.daily) : snap.daily;
+  return period === 'd7' ? d.slice(-7) : d;
+}
+function chartLabel(i, data) {
+  const v = abbr(data[i]) + ' tok';
+  if (period === 'today') { const m = (data.length - 1) - i; return v + ' · ' + (m <= 0 ? 'this min' : m + 'm ago'); }
+  const days = (data.length - 1) - i, d = new Date(); d.setDate(d.getDate() - days);
+  const when = days === 0 ? 'today' : days === 1 ? 'yesterday' : (d.getMonth() + 1) + '/' + d.getDate();
+  return v + ' · ' + when;
+}
+function setupChart() {
+  const chart = $('chart'), tip = $('tip');
+  if (!chart || !tip) return;
+  chart.addEventListener('mousemove', (e) => {
+    const data = chartSeries(); if (!data.length) return;
+    const W = chart.clientWidth, H = chart.clientHeight, pad = 9, n = data.length, max = Math.max(1, ...data);
+    const mx = e.clientX - chart.getBoundingClientRect().left;
+    let i, px, py;
+    if (period === 'today') {
+      i = Math.max(0, Math.min(n - 1, Math.round((mx - pad) / (W - 2 * pad) * (n - 1))));
+      px = pad + (W - 2 * pad) * i / (n - 1);
+      py = H - pad - (H - 2 * pad) * (data[i] / max);
+    } else {
+      const gap = n > 20 ? 2 : 4, bw = (W - gap * (n - 1)) / n;
+      i = Math.max(0, Math.min(n - 1, Math.floor(mx / (bw + gap))));
+      px = i * (bw + gap) + bw / 2;
+      py = H - Math.max(2, (H - 2) * (data[i] / max));
+    }
+    hoverIdx = i;
+    tip.textContent = chartLabel(i, data);
+    tip.style.display = 'block';
+    tip.style.left = (chart.offsetLeft + Math.max(34, Math.min(W - 34, px))) + 'px';
+    tip.style.top = (chart.offsetTop + Math.max(12, py) - 6) + 'px';
+  });
+  chart.addEventListener('mouseleave', () => { hoverIdx = -1; tip.style.display = 'none'; });
 }
 
 /* ---------- boot ---------- */
@@ -233,10 +285,11 @@ function boot() {
   try { period = localStorage.getItem('tt-period') || 'today'; } catch (_e) {}
   try { inputMode = localStorage.getItem('tt-inmode') || 'all'; } catch (_e) {}
   for (const b of document.querySelectorAll('.seg-btn')) {
-    b.addEventListener('click', () => { period = b.dataset.period; try { localStorage.setItem('tt-period', period); } catch (_e) {} renderPeriod(); });
+    b.addEventListener('click', () => { period = b.dataset.period; hoverIdx = -1; const t = $('tip'); if (t) t.style.display = 'none'; try { localStorage.setItem('tt-period', period); } catch (_e) {} renderPeriod(); });
   }
   $('inTile').addEventListener('click', () => {
     inputMode = inputMode === 'fresh' ? 'all' : 'fresh';
+    hoverIdx = -1; const t = $('tip'); if (t) t.style.display = 'none';
     try { localStorage.setItem('tt-inmode', inputMode); } catch (_e) {}
     renderPeriod();
   });
@@ -245,6 +298,7 @@ function boot() {
   $('collapseBtn').addEventListener('click', () => setMode('collapsed'));
   setupPetDrag();
   setupPetInteractions();
+  setupChart();
 
   if (window.trackpad) {
     window.trackpad.onInit((d) => applyMode(d && d.mode === 'collapsed' ? 'collapsed' : 'expanded'));
@@ -267,6 +321,7 @@ function startMock() {
     d30: { in: 6531519, out: 12178495, cw: 169909917, cr: 3801486198, cost: 3886.64 },
   };
   const daily = Array.from({ length: 30 }, (_, i) => 60e6 + Math.sin(i / 3) * 35e6 + (i / 30) * 90e6 + Math.random() * 25e6);
+  const dailyFresh = daily.map((v) => v * 0.06);   // mock: fresh (in+out) is a small slice of the cache-heavy total
   let phase = 0;
   const tick = () => {
     phase += 1;
@@ -275,7 +330,8 @@ function startMock() {
       const lull = i < 22 ? 0.25 : 1;
       return Math.max(0, (8e5 + Math.sin((i + phase) / 4) * 6e5 + Math.random() * 9e5) * lull);
     });
-    render({ now: Date.now(), today: base.today, d7: base.d7, d30: base.d30, spark, daily, burnPerMin: burn, lastEventTs: Date.now() });
+    const sparkFresh = spark.map((v) => v * 0.06);
+    render({ now: Date.now(), today: base.today, d7: base.d7, d30: base.d30, spark, sparkFresh, daily, dailyFresh, burnPerMin: burn, lastEventTs: Date.now() });
   };
   tick();
   setInterval(tick, 2000);

@@ -190,8 +190,10 @@ class TokenAggregator {
     const today = blank(), d7 = blank(), d30 = blank();
     const m7 = nowMin - 7 * DAY_MIN, m30 = nowMin - 30 * DAY_MIN;
 
-    // 30-day daily series (total tokens/day) for the long sparkline
+    // 30-day daily series — "all" (in+out+cache) and "fresh" (in+out only),
+    // so the chart can follow the INPUT fresh↔(fresh+cache) toggle.
     const dayTotals = new Array(30).fill(0);
+    const dayFresh = new Array(30).fill(0);
     const nowDay = Math.floor(nowMin / DAY_MIN);
 
     for (const [k, b] of this.buckets) {
@@ -200,14 +202,15 @@ class TokenAggregator {
       if (k >= m7)  { d7.in  += b.in; d7.out  += b.out; d7.cw  += b.cw; d7.cr  += b.cr; d7.cost  += b.cost; }
       if (k >= todayMin) { today.in += b.in; today.out += b.out; today.cw += b.cw; today.cr += b.cr; today.cost += b.cost; }
       const dayIdx = 29 - (nowDay - Math.floor(k / DAY_MIN));
-      if (dayIdx >= 0 && dayIdx < 30) dayTotals[dayIdx] += tot;
+      if (dayIdx >= 0 && dayIdx < 30) { dayTotals[dayIdx] += tot; dayFresh[dayIdx] += b.in + b.out; }
     }
 
     // last 60 minutes, total tokens/min — the live "trackpad" trace
-    const spark = new Array(60);
+    const spark = new Array(60), sparkFresh = new Array(60);
     for (let i = 0; i < 60; i++) {
       const b = this.buckets.get(nowMin - (59 - i));
       spark[i] = b ? (b.in + b.out + b.cw + b.cr) : 0;
+      sparkFresh[i] = b ? (b.in + b.out) : 0;
     }
 
     // burn rate = (in+out) over the last 5 minutes, per minute
@@ -218,7 +221,7 @@ class TokenAggregator {
       .map(([model, tok]) => ({ model, tok }));
 
     return {
-      now, today, d7, d30, spark, daily: dayTotals,
+      now, today, d7, d30, spark, sparkFresh, daily: dayTotals, dailyFresh: dayFresh,
       burnPerMin: last5 / 5,
       lastEventTs: this.lastEventTs,
       uniqueEvents: this.seen.size,
