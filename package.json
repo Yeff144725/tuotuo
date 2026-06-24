@@ -1,7 +1,7 @@
 {
   "name": "token-trackpad",
   "version": "1.0.0",
-  "description": "A live trackpad for your Claude Code token burn — always-on-top desktop widget showing today / 7d / 30d input+output usage, computed in real time from ~/.claude/projects.",
+  "description": "A live trackpad for your Claude Code token burn — always-on-top macOS widget showing today / 7d / 30d usage and accurate per-model list-price cost (each model priced at its own rate, with an expandable breakdown), computed in real time from ~/.claude/projects.",
   "main": "main.js",
   "author": "Jeff Yang",
   "license": "MIT",

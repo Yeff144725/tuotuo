@@ -1,7 +1,7 @@
 # ⚡ 坨坨 (tuotuo)
 
 A tiny always-on-top **token HUD + electric pet** for [Claude Code](https://claude.com/claude-code).
-It shows your live token burn — today / 7d / 30d, input vs output, list-price cost —
+It shows your live token burn — today / 7d / 30d, input vs output, accurate per-model list-price cost —
 recomputed every 2 seconds straight from your local `~/.claude/projects/*.jsonl` logs.
 **No API key. No network. 100% local.**
 
@@ -16,7 +16,7 @@ Click the **–** and it collapses into a tiny pet that just lives in the corner
 ## What it does
 - **Live token usage** — `TODAY` / `7 DAYS` / `30 DAYS` tabs drive a big total, an input/output split, and cost.
 - **Honest counts** — dedupes by `message.id` (Claude Code copies each turn into many files; counting raw inflates totals ~3–4×).
-- **List-price cost** — per-model `$` estimate at public API rates; no account or billing access needed.
+- **List-price cost** — per-model `$` estimate at public API rates, each model charged at its own rate; click the cost for an expandable per-model breakdown. No account or billing access needed.
 - **Period-aware chart** — a 60-minute live sparkline for today, daily bars for 7d/30d. The whole UI runs cool (cyan) → hot (red) with your burn rate.
 - **A burn-reactive electric pet** — it glows **cool blue when you're idle and heats through amber to red as your token burn climbs**, so a glance tells you how hard you're driving Claude. It idles, hops + spins on hover, fires a thunderbolt on click, and tucks into a draggable floating mini-pet with a token badge.
 
