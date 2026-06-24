@@ -35,7 +35,7 @@
     <section class="hero">
       <div class="pet-host pet-host-sm" aria-hidden="true"></div>
       <div id="total" class="bignum" title="">—</div>
-      <div class="row sub"><span id="sub2" class="burn">—</span><span id="cost" class="cost">≈ $—</span></div>
+      <div class="row sub"><span id="sub2" class="burn">—</span><button id="costToggle" class="cost-toggle" aria-expanded="false"><span id="cost" class="cost">≈ $—</span><span class="cost-caret" aria-hidden="true">⌄</span></button></div>
       <canvas id="chart" class="chart"></canvas>
       <div id="chartCap" class="chartCap">—</div>
       <div id="tip" class="chart-tip"></div>
@@ -53,6 +53,9 @@
         <div class="tcap">generated</div>
       </div>
     </section>
+
+    <!-- expandable per-model cost breakdown (hidden until the cost is clicked) -->
+    <section id="breakdown" class="breakdown" hidden></section>
   </div>
 
   <!-- Original electric-mouse mascot (NOT Pikachu — original art) -->

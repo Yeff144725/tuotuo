@@ -15,6 +15,18 @@ const abbr = (n) => {
 };
 const full = (n) => Math.round(n).toLocaleString();
 const money = (n) => (n >= 1000 ? '$' + Math.round(n).toLocaleString() : '$' + n.toFixed(2));
+/* Honesty note for the cost: explains the '*' when any model was priced by family
+   fallback (estimated) or had no known rate (excluded). Empty when cost is exact. */
+const costNote = (s) => {
+  const lines = [];
+  if (s && s.estModels && s.estModels.length)
+    lines.push('Estimated — no exact list price for ' + s.estModels.join(', ') + '; charged at its model family’s current rate.');
+  if (s && s.unpModels && s.unpModels.length)
+    lines.push('Unpriced — no known rate for ' + s.unpModels.join(', ') + '; those tokens are excluded from this cost.');
+  return lines.join('\n');
+};
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const periodName = () => (period === 'd7' ? 'last 7 days' : period === 'd30' ? 'last 30 days' : 'today');
 
 /* ---------- thermal color (burn rate → cyan→amber→red) ---------- */
 const STOPS = [[0, [86, 214, 255]], [0.5, [255, 176, 32]], [1, [255, 77, 61]]];
@@ -105,6 +117,7 @@ let period = 'today';
 let inputMode = 'all';   // 'all' = fresh + cache, 'fresh' = fresh input only
 let prevTs = 0;
 let hoverIdx = -1;          // hovered chart point/bar (-1 = none)
+let breakdownOpen = false;  // per-model cost drawer (collapsed by default)
 const pct = (v, t) => (t ? (v / t * 100 < 1 ? (v / t * 100).toFixed(1) : Math.round(v / t * 100)) + '%' : '');
 
 const windowFor = (s) => (period === 'd7' ? s.d7 : period === 'd30' ? s.d30 : s.today);
@@ -137,7 +150,10 @@ function renderPeriod() {
   const total = inVal + outTok;            // TOTAL follows the INPUT toggle
   setNum($('total'), total, abbr);
   $('cNum').textContent = abbr(total);     // SAME value AND SAME format as the big total
-  $('cost').textContent = '≈ ' + money(w.cost) + ' list';
+  const approx = !!(w.est || w.unp);          // cost used a fallback estimate, or excludes an unpriced model
+  $('cost').textContent = '≈ ' + money(w.cost) + ' list' + (approx ? ' *' : '');
+  $('cost').classList.toggle('approx', approx);
+  $('costToggle').title = (approx ? costNote(snap) + '\n\n' : '') + 'Click for per-model breakdown';
   setNum($('inNum'), inVal, abbr);
   setNum($('outNum'), outTok, abbr);
   $('inShare').textContent = pct(inVal, total);
@@ -152,7 +168,47 @@ function renderPeriod() {
     $('sub2').textContent = 'avg ' + abbr(total / days) + ' / day';
     $('chartCap').textContent = period === 'd7' ? 'last 7 days' : 'last 30 days';
   }
+  renderBreakdown();
   requestAnimationFrame(fitToContent);
+}
+
+/* ---------- per-model cost breakdown (expandable) ---------- */
+function renderBreakdown() {
+  const el = $('breakdown');
+  if (!el) return;
+  if (!breakdownOpen || !snap) { el.hidden = true; return; }
+  const rows = (snap.breakdown && snap.breakdown[period]) || [];
+  if (!rows.length) {
+    el.innerHTML = '<div class="bd-empty">no usage in this period</div>';
+  } else {
+    el.innerHTML = '<div class="bd-head">PER MODEL · ' + periodName() + '</div>' +
+      rows.map((r) => {
+        const tag = r.unpriced ? '<span class="bd-tag unp">unpriced</span>'
+                  : r.estimated ? '<span class="bd-tag est">est</span>' : '';
+        return '<div class="bd-row">'
+          + '<span class="bd-model">' + esc(r.model.replace('claude-', '')) + tag + '</span>'
+          + '<span class="bd-tok">' + abbr(r.tok) + '</span>'
+          + '<span class="bd-cost">' + (r.unpriced ? '—' : money(r.cost)) + '</span>'
+          + '</div>';
+      }).join('');
+  }
+  el.hidden = false;
+}
+function setupCostToggle() {
+  const btn = $('costToggle');
+  if (!btn) return;
+  const sync = () => {
+    btn.classList.toggle('open', breakdownOpen);
+    btn.setAttribute('aria-expanded', breakdownOpen ? 'true' : 'false');
+  };
+  sync();                                   // reflect the restored preference on first paint
+  btn.addEventListener('click', () => {
+    breakdownOpen = !breakdownOpen;
+    sync();
+    try { localStorage.setItem('tt-breakdown', breakdownOpen ? '1' : '0'); } catch (_e) {}
+    renderBreakdown();
+    requestAnimationFrame(fitToContent);
+  });
 }
 
 function setStatus(st) {
@@ -284,6 +340,7 @@ function boot() {
 
   try { period = localStorage.getItem('tt-period') || 'today'; } catch (_e) {}
   try { inputMode = localStorage.getItem('tt-inmode') || 'all'; } catch (_e) {}
+  try { breakdownOpen = localStorage.getItem('tt-breakdown') === '1'; } catch (_e) {}
   for (const b of document.querySelectorAll('.seg-btn')) {
     b.addEventListener('click', () => { period = b.dataset.period; hoverIdx = -1; const t = $('tip'); if (t) t.style.display = 'none'; try { localStorage.setItem('tt-period', period); } catch (_e) {} renderPeriod(); });
   }
@@ -299,6 +356,7 @@ function boot() {
   setupPetDrag();
   setupPetInteractions();
   setupChart();
+  setupCostToggle();
 
   if (window.trackpad) {
     window.trackpad.onInit((d) => applyMode(d && d.mode === 'collapsed' ? 'collapsed' : 'expanded'));
@@ -322,6 +380,20 @@ function startMock() {
   };
   const daily = Array.from({ length: 30 }, (_, i) => 60e6 + Math.sin(i / 3) * 35e6 + (i / 30) * 90e6 + Math.random() * 25e6);
   const dailyFresh = daily.map((v) => v * 0.06);   // mock: fresh (in+out) is a small slice of the cache-heavy total
+  const breakdown = {
+    today: [
+      { model: 'claude-opus-4-8',   tok: 110_000_000,   cost: 118.00,  estimated: false, unpriced: false },
+      { model: 'claude-sonnet-4-6', tok: 27_157_077,    cost: 23.34,   estimated: false, unpriced: false },
+    ],
+    d7: [
+      { model: 'claude-opus-4-8',   tok: 820_000_000,   cost: 980.00,  estimated: false, unpriced: false },
+      { model: 'claude-sonnet-4-6', tok: 223_498_243,   cost: 137.25,  estimated: false, unpriced: false },
+    ],
+    d30: [
+      { model: 'claude-opus-4-8',   tok: 3_100_000_000, cost: 3400.00, estimated: false, unpriced: false },
+      { model: 'claude-sonnet-4-6', tok: 890_106_129,   cost: 486.64,  estimated: false, unpriced: false },
+    ],
+  };
   let phase = 0;
   const tick = () => {
     phase += 1;
@@ -331,7 +403,7 @@ function startMock() {
       return Math.max(0, (8e5 + Math.sin((i + phase) / 4) * 6e5 + Math.random() * 9e5) * lull);
     });
     const sparkFresh = spark.map((v) => v * 0.06);
-    render({ now: Date.now(), today: base.today, d7: base.d7, d30: base.d30, spark, sparkFresh, daily, dailyFresh, burnPerMin: burn, lastEventTs: Date.now() });
+    render({ now: Date.now(), today: base.today, d7: base.d7, d30: base.d30, spark, sparkFresh, daily, dailyFresh, burnPerMin: burn, lastEventTs: Date.now(), breakdown });
   };
   tick();
   setInterval(tick, 2000);

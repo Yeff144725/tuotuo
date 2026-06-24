@@ -89,7 +89,26 @@ body.collapsed #collapsed { display: flex; }
 .sub { padding-right: 58px; }
 .burn { font-family: var(--mono); font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
 .burn .caret { color: rgb(var(--accent)); font-size: 8px; }
-.cost { font-family: var(--mono); font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.cost { font-family: var(--mono); font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; transition: color .15s; }
+.cost.approx { text-decoration: underline dotted rgba(var(--accent), 0.55); text-underline-offset: 3px; }
+.cost-toggle { -webkit-app-region: no-drag; appearance: none; background: transparent; border: none; padding: 0; margin: 0; font: inherit; cursor: pointer; display: inline-flex; align-items: baseline; gap: 3px; }
+.cost-caret { color: var(--faint); font-size: 8px; line-height: 1; transition: transform .18s ease, color .15s; }
+.cost-toggle.open .cost-caret { transform: rotate(180deg); }
+.cost-toggle:hover .cost { color: var(--ink); }
+.cost-toggle:hover .cost-caret { color: var(--dim); }
+
+/* expandable per-model cost breakdown */
+.breakdown { display: flex; flex-direction: column; gap: 3px; padding: 7px 9px 8px; background: var(--hair-2); border: 1px solid var(--hair); border-radius: 11px; }
+.breakdown[hidden] { display: none; }
+.bd-head { font-family: var(--mono); font-size: 8px; letter-spacing: 1.2px; color: var(--faint); margin-bottom: 3px; }
+.bd-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: baseline; font-family: var(--mono); font-size: 10px; font-variant-numeric: tabular-nums; }
+.bd-model { color: var(--ink); letter-spacing: .2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bd-tok { color: var(--dim); }
+.bd-cost { color: rgb(var(--accent)); min-width: 46px; text-align: right; }
+.bd-tag { font-family: var(--sans); font-size: 7.5px; letter-spacing: .4px; padding: 1px 4px; margin-left: 5px; border-radius: 5px; }
+.bd-tag.est { color: #ffce7a; background: rgba(255, 176, 32, 0.16); }
+.bd-tag.unp { color: #ff9a8a; background: rgba(255, 110, 90, 0.16); }
+.bd-empty { font-family: var(--mono); font-size: 9px; color: var(--faint); text-align: center; padding: 2px 0; }
 .pet-host-sm { position: absolute; top: 2px; right: 0; width: 56px; height: 62px; pointer-events: auto; z-index: 3; }
 
 .chart { width: 100%; height: 74px; display: block; margin-top: 3px; cursor: crosshair; }

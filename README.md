@@ -53,7 +53,7 @@ Heads-up: that's a login-persistence mechanism (a macOS `LaunchAgent`). It only 
 **burn** = (input + output) over the last 5 minutes.
 
 ## How it works
-- `aggregator.js` tails the JSONL transcripts in `~/.claude/projects`, dedupes by message id, buckets usage per minute, and exposes a `snapshot()` (today / 7d / 30d, plus a 60-min sparkline, 30-day daily series, burn-per-minute, and per-model mix). Edit `PRICES` there if your rates differ.
+- `aggregator.js` tails the JSONL transcripts in `~/.claude/projects`, dedupes by message id, buckets usage per minute, and exposes a `snapshot()` (today / 7d / 30d, plus a 60-min sparkline, 30-day daily series, burn-per-minute, and per-model mix). Cost is summed **per model** — each turn is priced at the rate of whichever model generated it, so a Sonnet-only user never sees Opus pricing. A model that isn't in `PRICES` is priced at its family's current rate (Opus/Sonnet/Haiku/Fable) and the cost shows a `*` with a hover note, so the number is never silently wrong. Edit `PRICES` there if your rates differ.
 - `main.js` is a frameless, transparent, always-on-top Electron shell with a tray icon.
 - `renderer/` is the dense panel + the pet (SVG + CSS keyframes).
 
