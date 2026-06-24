@@ -185,9 +185,11 @@ function renderBreakdown() {
       rows.map((r) => {
         const tag = r.unpriced ? '<span class="bd-tag unp">unpriced</span>'
                   : r.estimated ? '<span class="bd-tag est">est</span>' : '';
+        // token column follows the INPUT toggle so rows sum to the hero total
+        const tok = inputMode === 'fresh' ? (r.in + r.out) : (r.in + r.cache + r.out);
         return '<div class="bd-row">'
           + '<span class="bd-model">' + esc(r.model.replace('claude-', '')) + tag + '</span>'
-          + '<span class="bd-tok">' + abbr(r.tok) + '</span>'
+          + '<span class="bd-tok">' + abbr(tok) + '</span>'
           + '<span class="bd-cost">' + (r.unpriced ? '—' : money(r.cost)) + '</span>'
           + '</div>';
       }).join('');
@@ -382,16 +384,16 @@ function startMock() {
   const dailyFresh = daily.map((v) => v * 0.06);   // mock: fresh (in+out) is a small slice of the cache-heavy total
   const breakdown = {
     today: [
-      { model: 'claude-opus-4-8',   tok: 110_000_000,   cost: 118.00,  estimated: false, unpriced: false },
-      { model: 'claude-sonnet-4-6', tok: 27_157_077,    cost: 23.34,   estimated: false, unpriced: false },
+      { model: 'claude-opus-4-8',   in: 159000, out: 456000, cache: 116000000, cost: 120.14, estimated: false, unpriced: false },
+      { model: 'claude-sonnet-4-6', in: 28121,  out: 80330,  cache: 20433626,  cost: 21.20,  estimated: false, unpriced: false },
     ],
     d7: [
-      { model: 'claude-opus-4-8',   tok: 820_000_000,   cost: 980.00,  estimated: false, unpriced: false },
-      { model: 'claude-sonnet-4-6', tok: 223_498_243,   cost: 137.25,  estimated: false, unpriced: false },
+      { model: 'claude-opus-4-8',   in: 2726079, out: 3803511, cache: 880000000,  cost: 980.00,  estimated: false, unpriced: false },
+      { model: 'claude-sonnet-4-6', in: 481073,  out: 671208,  cache: 155816372,  cost: 137.25,  estimated: false, unpriced: false },
     ],
     d30: [
-      { model: 'claude-opus-4-8',   tok: 3_100_000_000, cost: 3400.00, estimated: false, unpriced: false },
-      { model: 'claude-sonnet-4-6', tok: 890_106_129,   cost: 486.64,  estimated: false, unpriced: false },
+      { model: 'claude-opus-4-8',   in: 5551791, out: 10351721, cache: 3400000000, cost: 3400.00, estimated: false, unpriced: false },
+      { model: 'claude-sonnet-4-6', in: 979728,  out: 1826774,  cache: 571396115,  cost: 486.64,  estimated: false, unpriced: false },
     ],
   };
   let phase = 0;

@@ -132,10 +132,12 @@ class TokenAggregator {
     const mTok = inp + out + cw + cr;
     if (o.message.model) {
       this.models.set(o.message.model, (this.models.get(o.message.model) || 0) + mTok);
-      // per-model split within this minute → powers the period-accurate breakdown
+      // per-model split within this minute → powers the period-accurate breakdown.
+      // Keep in/out/cache separate so the breakdown's token column can follow the
+      // INPUT fresh ↔ (fresh + cache) toggle, exactly like the hero total does.
       const bm = b.m || (b.m = {});
-      const e = bm[o.message.model] || (bm[o.message.model] = { tok: 0, cost: 0 });
-      e.tok += mTok; e.cost += turnCost;
+      const e = bm[o.message.model] || (bm[o.message.model] = { in: 0, out: 0, cache: 0, cost: 0 });
+      e.in += inp; e.out += out; e.cache += cw + cr; e.cost += turnCost;
     }
   }
 
@@ -225,7 +227,7 @@ class TokenAggregator {
 
     // per-model cost/tokens, accumulated per window for the expandable breakdown
     const bmToday = {}, bmD7 = {}, bmD30 = {};
-    const addModel = (acc, name, e) => { const r = acc[name] || (acc[name] = { tok: 0, cost: 0 }); r.tok += e.tok; r.cost += e.cost; };
+    const addModel = (acc, name, e) => { const r = acc[name] || (acc[name] = { in: 0, out: 0, cache: 0, cost: 0 }); r.in += e.in; r.out += e.out; r.cache += e.cache; r.cost += e.cost; };
 
     for (const [k, b] of this.buckets) {
       const tot = b.in + b.out + b.cw + b.cr;
@@ -269,8 +271,8 @@ class TokenAggregator {
     // per-period rows for the expandable cost breakdown, richest-first
     const mkRows = (acc) => Object.entries(acc).map(([model, r]) => {
       const pr = priceFor(model);
-      return { model, tok: r.tok, cost: r.cost, estimated: !!(pr && pr.estimated), unpriced: !pr };
-    }).sort((a, b) => b.cost - a.cost || b.tok - a.tok);
+      return { model, in: r.in, out: r.out, cache: r.cache, cost: r.cost, estimated: !!(pr && pr.estimated), unpriced: !pr };
+    }).sort((a, b) => b.cost - a.cost || (b.in + b.out + b.cache) - (a.in + a.out + a.cache));
     const breakdown = { today: mkRows(bmToday), d7: mkRows(bmD7), d30: mkRows(bmD30) };
 
     return {
